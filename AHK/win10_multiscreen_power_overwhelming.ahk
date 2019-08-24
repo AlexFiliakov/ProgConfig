@@ -34,7 +34,7 @@ Extract Variable
 Rename symbol
 https://sourcemaking.com/refactoring/refactorings
 */
- 
+
 ;map Alt+Wheel to PageUp/Down
 ;(takes care of Shift+Ctrl mods)
 !WheelUp::Send, {PgUp}
@@ -138,25 +138,53 @@ resize_top_left(hold_button) {
     }
     return
 }
- 
-resize_centered(hold_button) {
+
+resize_window_with_mouse(hold_button) {
+    CoordMode Mouse, screen
+    id := WinExist("A")
     MouseGetPos start_mx, start_my
     While GetKeyState(hold_button,"P") {
-        CoordMode Mouse, screen
-        id := WinExist("A")
         WinGetPos x, y, width, height, ahk_id %id%
         MouseGetPos mx, my
-        neww := width  + x + (start_mx - mx)
-        newh := height + y + (start_my - my)
+
+        neww := width  + (start_mx - mx)
+        newh := height + (start_my - my)
  
         newx := x - (neww - width)/2
         newy := y - (newh - height)/2
         WinMove % "ahk_id" id,, newx, newy, neww, newh
+        start_mx := mx
+        start_my := my
  
         Sleep, 20
     }
     return
 }
+
+
+slowly_resize_window_with_mouse(hold_button) {
+    slow_factor = 5
+    CoordMode Mouse, screen
+    id := WinExist("A")
+    MouseGetPos start_mx, start_my
+    While GetKeyState(hold_button,"P") {
+        WinGetPos x, y, width, height, ahk_id %id%
+        MouseGetPos mx, my
+
+        neww := width  + (start_mx - mx)/slow_factor
+        newh := height + (start_my - my)/slow_factor
+ 
+        newx := x - (neww - width)/2
+        newy := y - (newh - height)/2
+        WinMove % "ahk_id" id,, newx, newy, neww, newh
+        start_mx := mx
+        start_my := my
+ 
+        Sleep, 20
+    }
+    return
+}
+ 
  
 center_window(hold_button) {
     While GetKeyState(hold_button,"P") {
@@ -172,7 +200,55 @@ center_window(hold_button) {
     }
     return
 }
+
+
+move_window(hold_button) {
+    CoordMode Mouse, screen
+    MouseGetPos start_mx, start_my
+    id := WinExist("A")
+    While GetKeyState(hold_button,"P") {
+        WinGetPos x, y, width, height, ahk_id %id%
+        MouseGetPos mx, my
+
+        diff_mx := mx - start_mx
+        diff_my := my - start_my
  
+        newx := x + diff_mx
+        newy := y + diff_my
+        WinMove % "ahk_id" id,, newx, newy, width, height
+        start_mx := mx
+        start_my := my
+ 
+        Sleep, 20
+    }
+    return
+}
+
+
+slowly_move_window(hold_button) {
+    slow_factor = 5
+    CoordMode Mouse, screen
+    MouseGetPos start_mx, start_my
+    id := WinExist("A")
+    While GetKeyState(hold_button,"P") {
+        WinGetPos x, y, width, height, ahk_id %id%
+        MouseGetPos mx, my
+
+        diff_mx := mx - start_mx
+        diff_my := my - start_my
+ 
+        newx := x + diff_mx/slow_factor
+        newy := y + diff_my/slow_factor
+        WinMove % "ahk_id" id,, newx, newy, width, height
+        start_mx := mx
+        start_my := my
+ 
+        Sleep, 20
+    }
+    return
+}
+
+
 size_window(w, h) {
     CoordMode Mouse, screen
     id := WinExist("A")
@@ -180,14 +256,35 @@ size_window(w, h) {
     WinMove % "ahk_id" id,, x, y, w, h
     return
 }
+
+; Win+Left Mouse Button should resize with mouse move
+#LButton::
+    resize_window_with_mouse("LButton")
+    return
+
+; Alt+Win+Left should slowly resize with mouse move
+!#LButton::
+    slowly_resize_window_with_mouse("LButton")
+    return
+
+; Shift+Win+Left should center to mouse position
++#LButton::
+    center_window("LButton")
+    return
+
+; Ctrl+Win+Left should move with mouse move (but not shift)
+^#LButton::
+    move_window("LButton")
+    return
+
+; Alt+Ctrl+Win+Left should slowly move with mouse move (but not shift)
+!^#LButton::
+    slowly_move_window("LButton")
+    return
+
  
-;WinKey + Wheel to size windows
 #RButton::
     center_window("RButton")
-    return
- 
-#LButton::
-    resize_centered("LButton")
     return
  
 !#MButton::
@@ -205,6 +302,8 @@ size_window(w, h) {
 ;     resize_top_left("Enter")
 ;     return
  
+;WinKey + Wheel to size windows
+
 ;resize window vertically
 Wheel_Size_Height(step_size) {
   CoordMode Mouse, screen

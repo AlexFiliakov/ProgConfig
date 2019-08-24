@@ -5,7 +5,11 @@ Requires [AutoHotKey](https://www.autohotkey.com/)
 
 Manipulate Windows using the Mouse
 - Win+Left Mouse Button resizes the active window with the mouse
-- Win+Right Mouse Button moves the active window with the mouse
+  - +Alt resizes slowly
+  - +Ctrl moves the active window with the mouse
+    - +Alt+Ctrl moves slowly
+  - +Shift centers the active window to the mouse
+- Win+Right Mouse Button centers the active window to the mouse
 - Win+Middle Mouse Button resizes the active window to 1280x800 (+Alt to 800x600)
   - hold down to move the active window with the mouse
 - Win+Wheel resizes vertically (+Shift to finesse)
